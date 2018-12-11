@@ -217,13 +217,36 @@ class EventUpdateView(LoginRequiredMixin, AdministratorLoginRequiredMixin,
                     return HttpResponseRedirect(reverse('event:list'))
             else:
                 data = request.POST.copy()
+                print(data)
+
                 try:
                     data['end_date'] = form.cleaned_data['end_date']
                 except KeyError:
                     data['end_date'] = ''
+
+                try:
+                    data['start_date'] = form.cleaned_data['start_date']
+                except KeyError:
+                    data['start_date'] = ''
+
+                try:
+                    if data.get('country', None):
+                        country = Country.objects.get(name=data['country'])
+                except KeyError:
+                    data['country_list'] = None
+
+                if country:
+                    state = Region.objects.filter(country=country)
+
+                if len(state):
+                    city_list = City.objects.filter(region=state)
+
+                print(type(country))
                 form = EventForm(data)
+                print("valuess: ", data['country'], data['state'], data['city'])
                 return render(request, 'event/edit.html', {
-                    'form': form,
+                    'form': form, 'event': event, 'country_list': Country.objects.all() ,
+                    'state_list': state, 'city_list': city_list
                 })
 
 
